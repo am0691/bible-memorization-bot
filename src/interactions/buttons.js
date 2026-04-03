@@ -144,27 +144,6 @@ async function handleButton(interaction, client) {
       break;
     }
 
-    case 'settings_toggle': {
-      await interaction.deferUpdate();
-      const newActive = member.is_active ? 0 : 1;
-      db.prepare(Q.updateMemberActive).run(newActive, memberId);
-      const toggleMsg = newActive
-        ? '🔔 알림이 다시 활성화되었습니다! (`/설정`에서 현황 확인)'
-        : '🔕 알림이 일시정지되었습니다. `/설정`에서 다시 켤 수 있습니다.';
-      await interaction.followUp({ content: toggleMsg, flags: [MessageFlags.Ephemeral] });
-      break;
-    }
-
-    case 'settings_sunday': {
-      await interaction.deferUpdate();
-      const newMode = member.sunday_mode ? 0 : 1;
-      db.prepare(Q.updateMemberSundayMode).run(newMode, memberId);
-      const sundayMsg = newMode
-        ? '🔕 주일 알림이 꺼졌습니다. 일요일에는 알림을 보내지 않습니다.'
-        : '🔔 주일 알림이 켜졌습니다. 일요일에도 알림을 보냅니다.';
-      await interaction.followUp({ content: sundayMsg, flags: [MessageFlags.Ephemeral] });
-      break;
-    }
   }
 }
 

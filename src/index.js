@@ -44,8 +44,8 @@ client.on('interactionCreate', async (interaction) => {
   // Button interactions
   if (interaction.isButton()) {
     try {
-      // Settings track toggle buttons → settings handler
-      if (interaction.customId.startsWith('settings_track_')) {
+      // All settings buttons → settings handler
+      if (interaction.customId.startsWith('settings_')) {
         const settings = require('./commands/settings');
         return await settings.handleButton(interaction);
       }

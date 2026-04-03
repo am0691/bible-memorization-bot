@@ -36,29 +36,48 @@ module.exports = {
     if (!member || member.discord_id !== interaction.user.id) return;
 
     switch (action) {
+      case 'settings_toggle': {
+        const newActive = member.is_active ? 0 : 1;
+        db.prepare(Q.updateMemberActive).run(newActive, member.id);
+        const msg = newActive ? '알림이 다시 활성화되었습니다' : '알림이 일시정지되었습니다';
+        const updated = db.prepare(Q.getMemberById).get(member.id);
+        return showSettingsMenu(interaction, updated, true, msg);
+      }
+      case 'settings_sunday': {
+        const newMode = member.sunday_mode ? 0 : 1;
+        db.prepare(Q.updateMemberSundayMode).run(newMode, member.id);
+        const msg = newMode ? '주일 알림이 꺼졌습니다' : '주일 알림이 켜졌습니다';
+        const updated = db.prepare(Q.getMemberById).get(member.id);
+        return showSettingsMenu(interaction, updated, true, msg);
+      }
+      case 'settings_done': {
+        const embed = new EmbedBuilder()
+          .setColor(0x57F287)
+          .setTitle('✅ 설정 완료')
+          .setDescription('설정이 저장되었습니다. 변경사항은 다음 알림부터 적용됩니다.');
+        await interaction.update({ embeds: [embed], components: [] });
+        break;
+      }
       case 'settings_track_new': {
         const newVal = member.is_new_active ? 0 : 1;
         db.prepare(Q.updateMemberNewActive).run(newVal, member.id);
-        const msg = newVal ? '🆕 새 구절 트랙이 활성화되었습니다.' : '🆕 새 구절 트랙이 비활성화되었습니다.';
-        await interaction.deferUpdate();
-        await interaction.followUp({ content: msg, flags: [MessageFlags.Ephemeral] });
-        break;
+        const msg = newVal ? '새 구절 트랙이 활성화되었습니다' : '새 구절 트랙이 비활성화되었습니다';
+        const updated = db.prepare(Q.getMemberById).get(member.id);
+        return showSettingsMenu(interaction, updated, true, msg);
       }
       case 'settings_track_recent': {
         const newVal = member.is_recent_active ? 0 : 1;
         db.prepare(Q.updateMemberRecentActive).run(newVal, member.id);
-        const msg = newVal ? '🔄 최신 복습 트랙이 활성화되었습니다.' : '🔄 최신 복습 트랙이 비활성화되었습니다.';
-        await interaction.deferUpdate();
-        await interaction.followUp({ content: msg, flags: [MessageFlags.Ephemeral] });
-        break;
+        const msg = newVal ? '최신 복습 트랙이 활성화되었습니다' : '최신 복습 트랙이 비활성화되었습니다';
+        const updated = db.prepare(Q.getMemberById).get(member.id);
+        return showSettingsMenu(interaction, updated, true, msg);
       }
       case 'settings_track_old': {
         const newVal = member.is_old_active ? 0 : 1;
         db.prepare(Q.updateMemberOldActive).run(newVal, member.id);
-        const msg = newVal ? '📗 예전 복습 트랙이 활성화되었습니다.' : '📗 예전 복습 트랙이 비활성화되었습니다.';
-        await interaction.deferUpdate();
-        await interaction.followUp({ content: msg, flags: [MessageFlags.Ephemeral] });
-        break;
+        const msg = newVal ? '예전 복습 트랙이 활성화되었습니다' : '예전 복습 트랙이 비활성화되었습니다';
+        const updated = db.prepare(Q.getMemberById).get(member.id);
+        return showSettingsMenu(interaction, updated, true, msg);
       }
     }
   },
@@ -111,7 +130,7 @@ module.exports = {
   },
 };
 
-async function showSettingsMenu(interaction, member, isUpdate = false) {
+async function showSettingsMenu(interaction, member, isUpdate = false, successMsg = null) {
   const newCourse = member.new_course_id ? db.prepare(Q.getCourseById).get(member.new_course_id) : null;
   const reviewCourse = member.review_course_id ? db.prepare(Q.getCourseById).get(member.review_course_id) : null;
   const statusText = member.is_active ? '🟢 활성' : '🔴 비활성';
@@ -123,8 +142,13 @@ async function showSettingsMenu(interaction, member, isUpdate = false) {
 
   const embed = new EmbedBuilder()
     .setColor(0x4A90D9)
-    .setTitle('⚙️ 나의 암송 설정')
-    .addFields(
+    .setTitle('⚙️ 나의 암송 설정');
+
+  if (successMsg) {
+    embed.setDescription(`✅ ${successMsg}`);
+  }
+
+  embed.addFields(
       { name: '━━ 🆕 새 구절 ━━', value: '\u200b', inline: false },
       { name: '📚 코스', value: newCourse ? `${newCourse.name} (${newCourse.total_verses}구절)` : '-', inline: true },
       { name: '📍 현재 위치', value: newPosText, inline: true },
@@ -167,6 +191,11 @@ async function showSettingsMenu(interaction, member, isUpdate = false) {
     .setLabel(member.sunday_mode ? '🔔 주일 알림 켜기' : '🔕 주일 알림 끄기')
     .setStyle(member.sunday_mode ? ButtonStyle.Success : ButtonStyle.Secondary);
 
+  const doneBtn = new ButtonBuilder()
+    .setCustomId(`settings_done:${member.id}`)
+    .setLabel('✅ 설정 완료')
+    .setStyle(ButtonStyle.Primary);
+
   const newTrackBtn = new ButtonBuilder()
     .setCustomId(`settings_track_new:${member.id}`)
     .setLabel(member.is_new_active ? '🆕 새구절 ON' : '🆕 새구절 OFF')
@@ -183,7 +212,7 @@ async function showSettingsMenu(interaction, member, isUpdate = false) {
     .setStyle(member.is_old_active ? ButtonStyle.Success : ButtonStyle.Secondary);
 
   const row1 = new ActionRowBuilder().addComponents(settingsMenu);
-  const row2 = new ActionRowBuilder().addComponents(toggleBtn, sundayBtn);
+  const row2 = new ActionRowBuilder().addComponents(toggleBtn, sundayBtn, doneBtn);
   const row3 = new ActionRowBuilder().addComponents(newTrackBtn, recentTrackBtn, oldTrackBtn);
 
   const payload = { embeds: [embed], components: [row1, row2, row3], flags: [MessageFlags.Ephemeral] };
@@ -279,13 +308,15 @@ async function handleNewCourseChange(interaction, member) {
   const newPos = prev ? prev.new_position : 1;
 
   db.prepare(Q.updateMemberNewCourse).run(newCourseId, newPos, member.id);
-  await interaction.reply({ content: `✅ 새구절 코스가 **${course.name}**으로 변경되었습니다! (${newPos}번째부터)`, flags: [MessageFlags.Ephemeral] });
+  const updated = db.prepare(Q.getMemberById).get(member.id);
+  return showSettingsMenu(interaction, updated, true, `새구절 코스가 ${course.name}으로 변경되었습니다`);
 }
 
 async function handleNewPerWeekChange(interaction, member) {
   const val = parseInt(interaction.values[0]);
   db.prepare(Q.updateMemberNewPerWeek).run(val, member.id);
-  await interaction.reply({ content: `✅ 주간 새구절이 **${val}구절/주**로 변경되었습니다!`, flags: [MessageFlags.Ephemeral] });
+  const updated = db.prepare(Q.getMemberById).get(member.id);
+  return showSettingsMenu(interaction, updated, true, `주간 새구절이 ${val}구절/주로 변경되었습니다`);
 }
 
 async function handleReviewCourseChange(interaction, member) {
@@ -303,13 +334,15 @@ async function handleReviewCourseChange(interaction, member) {
   const reviewPos = prev ? prev.review_position : 1;
 
   db.prepare(Q.updateMemberReviewCourse).run(newCourseId, reviewPos, member.id);
-  await interaction.reply({ content: `✅ 복습 코스가 **${course.name}**으로 변경되었습니다! (${reviewPos}번째부터)`, flags: [MessageFlags.Ephemeral] });
+  const updated = db.prepare(Q.getMemberById).get(member.id);
+  return showSettingsMenu(interaction, updated, true, `복습 코스가 ${course.name}으로 변경되었습니다`);
 }
 
 async function handleRecentCountChange(interaction, member) {
   const val = parseInt(interaction.values[0]);
   db.prepare(Q.updateMemberRecentCount).run(val, member.id);
-  await interaction.reply({ content: `✅ 최신 복습 범위가 **최근 ${val}구절**로 변경되었습니다!`, flags: [MessageFlags.Ephemeral] });
+  const updated = db.prepare(Q.getMemberById).get(member.id);
+  return showSettingsMenu(interaction, updated, true, `최신 복습 범위가 최근 ${val}구절로 변경되었습니다`);
 }
 
 // Show section selection for position change (step 1)
@@ -399,10 +432,12 @@ async function handlePosVerseSelect(interaction, member) {
 
   if (type === 'new') {
     db.prepare(Q.updateMemberNewPosition).run(pos, member.id);
-    await interaction.reply({ content: `✅ 새구절 시작점이 **${pos}번째**로 변경되었습니다!`, flags: [MessageFlags.Ephemeral] });
+    const updated = db.prepare(Q.getMemberById).get(member.id);
+    return showSettingsMenu(interaction, updated, true, `새구절 시작점이 ${pos}번째로 변경되었습니다`);
   } else {
     db.prepare(Q.updateMemberReviewPosition).run(pos, member.id);
-    await interaction.reply({ content: `✅ 복습 시작점이 **${pos}번째**로 변경되었습니다!`, flags: [MessageFlags.Ephemeral] });
+    const updated = db.prepare(Q.getMemberById).get(member.id);
+    return showSettingsMenu(interaction, updated, true, `복습 시작점이 ${pos}번째로 변경되었습니다`);
   }
 }
 
