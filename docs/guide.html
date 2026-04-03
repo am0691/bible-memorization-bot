@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>성경 암송 봇 v2.0 — 사용자 설명서</title>
+<title>성경 암송 봇 v3.0 — 사용자 설명서</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
 
@@ -1280,7 +1280,7 @@ body {
     </div>
 
     <div class="cover-eyebrow">Bible Memorization · Discord Bot</div>
-    <div class="cover-badge">v2.0 사용자 설명서</div>
+    <div class="cover-badge">v3.0 사용자 설명서</div>
 
     <h1 class="cover-title">
       함께하는<br><span>성경 암송</span>
@@ -1302,7 +1302,7 @@ body {
       </div>
       <div class="cover-feature">
         <div class="cover-feature-icon">🔄</div>
-        <div class="cover-feature-label">체계적인<br>순환 복습</div>
+        <div class="cover-feature-label">3트랙<br>복습 시스템</div>
       </div>
       <div class="cover-feature">
         <div class="cover-feature-icon">📈</div>
@@ -1363,7 +1363,7 @@ body {
     <div class="toc-list">
       <div class="toc-item">
         <div class="toc-num">03</div>
-        <div class="toc-label">암송 시스템 이해하기 <span class="toc-sub">새 구절, 복습, 연속 기록(스트릭)</span></div>
+        <div class="toc-label">암송 시스템 이해하기 <span class="toc-sub">새 구절, 최신 복습, 예전 복습, 스트릭</span></div>
         <div class="toc-dot"></div>
         <div class="toc-page-num">5</div>
       </div>
@@ -1373,7 +1373,7 @@ body {
     <div class="toc-list">
       <div class="toc-item">
         <div class="toc-num">04</div>
-        <div class="toc-label">/설정 — 맞춤 설정하기 <span class="toc-sub">알림, 코스, 목표 변경</span></div>
+        <div class="toc-label">/설정 — 맞춤 설정하기 <span class="toc-sub">트랙 ON/OFF, 코스, 목표, 최신 복습 범위</span></div>
         <div class="toc-dot"></div>
         <div class="toc-page-num">6</div>
       </div>
@@ -1509,7 +1509,7 @@ body {
       <div style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:4mm;">
         <div style="font-family:'Noto Serif KR',serif; font-size:11px; font-weight:600; color:var(--text-primary); margin-bottom:2mm;">📍 Step 2 — 시작 위치</div>
         <div style="font-size:9.5px; color:var(--text-secondary); line-height:1.7; font-weight:300;">
-          이미 외운 구절이 있다면 그 이후부터 시작할 수 있습니다.<br>
+          이미 외운 구절이 있다면 그 이후부터 시작할 수 있습니다. 먼저 <strong>섹션을 선택</strong>한 후, 해당 섹션 안에서 <strong>구절 단위</strong>로 정확한 시작점을 지정합니다.<br>
           예를 들어 성장 코스에서 12구절을 이미 외웠다면 <strong>13번째 구절</strong>부터 새로 시작됩니다.<br>
           처음이라면 <strong>1번 구절</strong>을 선택하세요.
         </div>
@@ -1549,7 +1549,7 @@ body {
     </div>
 
     <h2 class="section-heading">매일 아침 <span class="accent">08:30</span> — 오늘의 말씀</h2>
-    <p class="section-subheading">매일 아침 디스코드 DM으로 오늘의 암송 알림이 도착합니다. 새 구절과 복습 구절, 두 가지를 함께 보내드립니다.</p>
+    <p class="section-subheading">매일 아침 디스코드 DM으로 오늘의 암송 알림이 도착합니다. 새 구절, 최신 복습, 예전 복습 — 세 가지 트랙을 함께 보내드립니다.</p>
 
     <!-- Discord Mockup -->
     <div class="discord-mockup">
@@ -1583,7 +1583,16 @@ body {
               </div>
               <div>
                 <div class="discord-embed-field">
-                  <div class="discord-embed-field-name">📗 오늘의 복습</div>
+                  <div class="discord-embed-field-name">🔄 최신 복습 (12구절)</div>
+                  <div class="discord-embed-verse" style="border-left: 2px solid #E2B04A; padding-left:3mm;">
+                    <div class="discord-embed-verse-ref" style="color:rgba(255,255,255,0.5);">최근 진도 12구절 · 성장 코스</div>
+                    <div class="discord-embed-verse-text">1. 고후 5:17 | 2. 갈 2:20 | 3. 롬 6:23 | ...<br>최근 배운 구절을 매일 복습합니다</div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="discord-embed-field">
+                  <div class="discord-embed-field-name">📗 예전 복습</div>
                   <div class="discord-embed-verse" style="border-left: 2px solid var(--accent-gold); padding-left:3mm;">
                     <div class="discord-embed-verse-ref" style="color:rgba(255,255,255,0.5);">로마서 12:1 · 복습 순환 7번째</div>
                     <div class="discord-embed-verse-text">"그러므로 형제들아 내가 하나님의 모든 자비하심으로 너희를 권하노니..."</div>
@@ -1592,10 +1601,9 @@ body {
               </div>
               <div class="discord-buttons">
                 <div class="discord-btn green">✅ 암송 완료</div>
-                <div class="discord-btn green">✅ 복습 완료</div>
+                <div class="discord-btn green">✅ 최신 복습 완료</div>
+                <div class="discord-btn green">✅ 예전 복습 완료</div>
                 <div class="discord-btn gray">😴 쉴게요</div>
-                <div class="discord-btn gray">📖 새구절 전문</div>
-                <div class="discord-btn gray">📖 복습 전문</div>
               </div>
             </div>
           </div>
@@ -1616,8 +1624,15 @@ body {
       <div class="btn-ref-item">
         <div class="btn-ref-emoji">✅</div>
         <div class="btn-ref-content">
-          <div class="btn-ref-name">복습 완료</div>
-          <div class="btn-ref-desc">오늘의 복습 구절을 마쳤을 때 누릅니다. 다음 순환 구절로 자동 이동합니다.</div>
+          <div class="btn-ref-name">최신 복습 완료</div>
+          <div class="btn-ref-desc">최근 배운 구절의 복습을 마쳤을 때 누릅니다.</div>
+        </div>
+      </div>
+      <div class="btn-ref-item">
+        <div class="btn-ref-emoji">✅</div>
+        <div class="btn-ref-content">
+          <div class="btn-ref-name">예전 복습 완료</div>
+          <div class="btn-ref-desc">예전에 배운 구절의 순환 복습을 마쳤을 때 누릅니다. 다음 순환 구절로 자동 이동합니다.</div>
         </div>
       </div>
       <div class="btn-ref-item">
@@ -1627,20 +1642,13 @@ body {
           <div class="btn-ref-desc">오늘 하루 쉬고 싶을 때 누릅니다. 스트릭은 유지되지 않습니다.</div>
         </div>
       </div>
-      <div class="btn-ref-item">
-        <div class="btn-ref-emoji">📖</div>
-        <div class="btn-ref-content">
-          <div class="btn-ref-name">새구절 전문 / 복습 전문</div>
-          <div class="btn-ref-desc">구절의 전체 텍스트를 보고 싶을 때 누릅니다. 긴 구절도 전부 표시됩니다.</div>
-        </div>
-      </div>
     </div>
 
     <div class="tip-box">
       <div class="tip-icon">🔥</div>
       <div class="tip-content">
         <div class="tip-title">스트릭(연속 기록) 쌓는 법</div>
-        <div class="tip-text"><strong>새 구절 완료</strong>와 <strong>복습 완료</strong>를 <strong>모두</strong> 누르면 그 날 스트릭이 1 증가합니다. 둘 중 하나라도 빠지면 카운트되지 않으니 주의하세요!</div>
+        <div class="tip-text">활성화된 모든 트랙(<strong>새 구절</strong>, <strong>최신 복습</strong>, <strong>예전 복습</strong>)의 완료 버튼을 <strong>모두</strong> 누르면 그 날 스트릭이 1 증가합니다. 하나라도 빠지면 카운트되지 않으니 주의하세요!</div>
       </div>
     </div>
   </div>
@@ -1660,7 +1668,7 @@ body {
     </div>
 
     <h2 class="section-heading">암송 시스템 <span class="accent">이해하기</span></h2>
-    <p class="section-subheading">봇은 두 가지 트랙을 동시에 운영합니다. 새 구절을 배우는 트랙과, 이미 외운 구절을 반복하는 복습 트랙입니다.</p>
+    <p class="section-subheading">봇은 세 가지 트랙을 동시에 운영합니다. 새 구절을 배우는 트랙, 최근 배운 구절을 집중 복습하는 최신 복습 트랙, 그리고 전체를 순환하는 예전 복습 트랙입니다.</p>
 
     <!-- System Cards -->
     <div class="system-flow">
@@ -1669,18 +1677,25 @@ body {
         <div class="system-card-title">새 구절 트랙</div>
         <div class="system-card-body">
           <strong>매주 월요일</strong>에 새로운 구절이 배정됩니다.<br><br>
-          한 주 동안 <strong>매일 같은 구절</strong>이 알림으로 옵니다. 7번 반복하면 자연스럽게 익힐 수 있습니다.<br><br>
-          다음 주 월요일에 새로운 구절이 배정됩니다.
+          한 주 동안 <strong>매일 같은 구절</strong>이 알림으로 옵니다. 7번 반복하면 자연스럽게 익힐 수 있습니다.
+        </div>
+      </div>
+      <div class="system-arrow">→</div>
+      <div class="system-card review" style="border-top: 4px solid #E2B04A;">
+        <div class="system-card-icon">🔄</div>
+        <div class="system-card-title">최신 복습 트랙</div>
+        <div class="system-card-body">
+          최근 배운 <strong>12구절</strong>을 매일 복습합니다.<br><br>
+          새 구절이 추가되면 자동으로 범위가 갱신됩니다. 범위는 6~18구절로 설정 가능합니다.
         </div>
       </div>
       <div class="system-arrow">→</div>
       <div class="system-card review">
-        <div class="system-card-icon">🔄</div>
-        <div class="system-card-title">복습 트랙</div>
+        <div class="system-card-icon">📗</div>
+        <div class="system-card-title">예전 복습 트랙</div>
         <div class="system-card-body">
-          이미 배운 구절을 <strong>1번부터 순서대로</strong> 순환 복습합니다.<br><br>
-          하루 목표에 맞게 매일 정해진 수의 구절이 알림으로 옵니다.<br><br>
-          마지막 구절까지 완료하면 다시 처음부터 반복됩니다.
+          처음부터 <strong>순서대로</strong> 전체 구절을 순환 복습합니다.<br><br>
+          하루 목표에 맞게 매일 정해진 수의 구절이 알림으로 옵니다.
         </div>
       </div>
       <div class="system-arrow">+</div>
@@ -1688,9 +1703,8 @@ body {
         <div class="system-card-icon">🔥</div>
         <div class="system-card-title">스트릭</div>
         <div class="system-card-body">
-          새 구절 완료 <strong>+</strong> 복습 완료를 <strong>모두</strong> 마치면 스트릭이 1 증가합니다.<br><br>
-          연속으로 쌓일수록 하나님 말씀이 마음 깊이 새겨집니다.<br><br>
-          스트릭은 <strong>/진도</strong>에서 확인할 수 있습니다.
+          활성화된 모든 트랙을 <strong>모두</strong> 완료하면 스트릭이 1 증가합니다.<br><br>
+          각 트랙은 개별 ON/OFF 가능합니다.
         </div>
       </div>
     </div>
@@ -1745,8 +1759,8 @@ body {
     <div class="tip-box">
       <div class="tip-icon">📌</div>
       <div class="tip-content">
-        <div class="tip-title">새 구절과 복습 코스를 다르게 설정할 수 있어요</div>
-        <div class="tip-text">예를 들어 <strong>새 구절</strong>은 심화 코스(242구절)로, <strong>복습</strong>은 성장 코스(60구절)로 따로 설정할 수 있습니다. /설정에서 언제든지 변경 가능합니다.</div>
+        <div class="tip-title">각 트랙을 개별적으로 ON/OFF할 수 있어요</div>
+        <div class="tip-text">각 트랙은 /설정에서 개별적으로 ON/OFF할 수 있습니다. 예를 들어 최신 복습만 끄고 새 구절과 예전 복습만 사용하는 것도 가능합니다.</div>
       </div>
     </div>
   </div>
@@ -1781,17 +1795,34 @@ body {
         </div>
         <div class="settings-item">
           <div class="settings-item-name">시작 위치</div>
-          <div class="settings-item-val">1번 구절</div>
+          <div class="settings-item-val">13번 구절</div>
         </div>
         <div class="settings-item">
           <div class="settings-item-name">주간 진도 목표</div>
-          <div class="settings-item-val">주 1구절</div>
+          <div class="settings-item-val">주 2구절</div>
         </div>
       </div>
       <div class="settings-group">
         <div class="settings-group-header">
           <div class="settings-group-icon">🔄</div>
-          <div class="settings-group-title">복습 설정</div>
+          <div class="settings-group-title">최신 복습 설정</div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-name">복습 범위</div>
+          <div class="settings-item-val">최근 12구절</div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-name">트랙 상태</div>
+          <div class="settings-item-toggle">
+            <div class="toggle-on"></div>
+            <span style="font-size:9px;color:var(--accent-green-mid);">켜짐</span>
+          </div>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-header">
+          <div class="settings-group-icon">📗</div>
+          <div class="settings-group-title">예전 복습 설정</div>
         </div>
         <div class="settings-item">
           <div class="settings-item-name">복습 코스</div>
@@ -1799,53 +1830,45 @@ body {
         </div>
         <div class="settings-item">
           <div class="settings-item-name">복습 시작 위치</div>
-          <div class="settings-item-val">12번 구절</div>
+          <div class="settings-item-val">1번 구절</div>
         </div>
         <div class="settings-item">
           <div class="settings-item-name">일일 복습 목표</div>
-          <div class="settings-item-val">3구절</div>
+          <div class="settings-item-val">12구절</div>
         </div>
       </div>
       <div class="settings-group">
         <div class="settings-group-header">
-          <div class="settings-group-icon">🔔</div>
-          <div class="settings-group-title">알림 설정</div>
+          <div class="settings-group-icon">🎛️</div>
+          <div class="settings-group-title">트랙 & 알림</div>
         </div>
         <div class="settings-item">
-          <div class="settings-item-name">알림 받기</div>
+          <div class="settings-item-name">🆕 새 구절</div>
           <div class="settings-item-toggle">
             <div class="toggle-on"></div>
-            <span style="font-size:9px;color:var(--accent-green-mid);">켜짐</span>
+            <span style="font-size:9px;color:var(--accent-green-mid);">ON</span>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-name">🔄 최신 복습</div>
+          <div class="settings-item-toggle">
+            <div class="toggle-on"></div>
+            <span style="font-size:9px;color:var(--accent-green-mid);">ON</span>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-name">📗 예전 복습</div>
+          <div class="settings-item-toggle">
+            <div class="toggle-on"></div>
+            <span style="font-size:9px;color:var(--accent-green-mid);">ON</span>
           </div>
         </div>
         <div class="settings-item">
           <div class="settings-item-name">주일 알림</div>
           <div class="settings-item-toggle">
             <div class="toggle-off"></div>
-            <span style="font-size:9px;color:var(--text-muted);">꺼짐</span>
+            <span style="font-size:9px;color:var(--text-muted);">OFF</span>
           </div>
-        </div>
-        <div class="settings-item">
-          <div class="settings-item-name">알림 시간</div>
-          <div class="settings-item-val">08:30</div>
-        </div>
-      </div>
-      <div class="settings-group">
-        <div class="settings-group-header">
-          <div class="settings-group-icon">ℹ️</div>
-          <div class="settings-group-title">현재 상태</div>
-        </div>
-        <div class="settings-item">
-          <div class="settings-item-name">등록 날짜</div>
-          <div class="settings-item-val">2025.01.06</div>
-        </div>
-        <div class="settings-item">
-          <div class="settings-item-name">현재 스트릭</div>
-          <div class="settings-item-val">🔥 12일</div>
-        </div>
-        <div class="settings-item">
-          <div class="settings-item-name">총 완료 구절</div>
-          <div class="settings-item-val">36구절</div>
         </div>
       </div>
     </div>
@@ -1872,8 +1895,8 @@ body {
     <div class="tip-box">
       <div class="tip-icon">⚡</div>
       <div class="tip-content">
-        <div class="tip-title">변경 사항은 즉시 저장됩니다</div>
-        <div class="tip-text">/설정에서 항목을 선택하면 별도 저장 버튼 없이 바로 반영됩니다. 다음 날 아침 알림부터 변경된 설정으로 받게 됩니다.</div>
+        <div class="tip-title">설정을 연속으로 변경할 수 있습니다</div>
+        <div class="tip-text">설정 변경 후 자동으로 설정 메뉴로 돌아옵니다. 여러 항목을 연속으로 변경한 뒤 <strong>✅ 설정 완료</strong> 버튼을 눌러 마무리하세요.</div>
       </div>
     </div>
   </div>
@@ -2219,7 +2242,7 @@ body {
 
     <div style="text-align:center;">
       <div style="font-family:'Noto Serif KR',serif; font-size:11px; color:var(--text-muted); font-style:italic; margin-bottom:2mm;">"여호와의 말씀은 순결함이여 흙 도가니에 일곱 번 단련한 은 같도다" — 시편 12:6</div>
-      <div style="font-size:9px; color:var(--text-muted); letter-spacing:0.1em;">성경 암송 팀 · Discord Bot v2.0 · 2025</div>
+      <div style="font-size:9px; color:var(--text-muted); letter-spacing:0.1em;">성경 암송 팀 · Discord Bot v3.0 · 2025</div>
     </div>
   </div>
   <div class="page-footer">9</div>
