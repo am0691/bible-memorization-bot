@@ -16,6 +16,20 @@ function getNewVerses(memberId) {
   return db.prepare(Q.getVersesInRange).all(member.new_course_id, member.new_position, endPos);
 }
 
+// Get recent review verses (dynamic range based on new_position)
+function getRecentReviewVerses(memberId) {
+  const member = db.prepare(Q.getMemberById).get(memberId);
+  if (!member || !member.is_recent_active || !member.new_course_id) return [];
+
+  const effectiveEnd = member.new_position - 1;
+  if (effectiveEnd <= 0) return [];
+
+  const effectiveStart = Math.max(1, effectiveEnd - member.recent_count + 1);
+  return db.prepare(Q.getVersesInRange).all(
+    member.new_course_id, effectiveStart, effectiveEnd + 1
+  );
+}
+
 // Get today's review verses (sequential cycling)
 function getReviewVerses(memberId) {
   const member = db.prepare(Q.getMemberById).get(memberId);
@@ -178,7 +192,16 @@ function hasReview(memberId) {
   return member && member.review_course_id != null;
 }
 
+// Check if member has active recent review
+function hasRecentReview(memberId) {
+  const member = db.prepare(Q.getMemberById).get(memberId);
+  if (!member || !member.is_recent_active || !member.new_course_id) return false;
+  return (member.new_position - 1) > 0;
+}
+
 module.exports = {
-  getNewVerses, getReviewVerses, advanceReviewPointer, advanceNewVersePointer,
-  getSectionProgress, saveCourseProgress, loadCourseProgress, hasNewVerses, hasReview,
+  getNewVerses, getRecentReviewVerses, getReviewVerses,
+  advanceReviewPointer, advanceNewVersePointer,
+  getSectionProgress, saveCourseProgress, loadCourseProgress,
+  hasNewVerses, hasRecentReview, hasReview,
 };
