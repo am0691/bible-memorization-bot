@@ -1,0 +1,12 @@
+app = "bible-memorization-bot"
+primary_region = "nrt"
+
+[build]
+
+[env]
+  TIMEZONE = "Asia/Seoul"
+  DAILY_REMINDER_TIME = "07:00"
+
+[mounts]
+  source = "bible_bot_data"
+  destination = "/data"

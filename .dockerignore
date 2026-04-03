@@ -1,0 +1,11 @@
+node_modules
+.env
+.git
+.omc
+.playwright-mcp
+reference
+docs
+scripts
+*.log
+data/bible-bot.db*
+hwp_mcp_stdio_server.log
