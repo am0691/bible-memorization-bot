@@ -44,6 +44,11 @@ client.on('interactionCreate', async (interaction) => {
   // Button interactions
   if (interaction.isButton()) {
     try {
+      // Settings track toggle buttons → settings handler
+      if (interaction.customId.startsWith('settings_track_')) {
+        const settings = require('./commands/settings');
+        return await settings.handleButton(interaction);
+      }
       await handleButton(interaction, client);
     } catch (error) {
       console.error('[버튼] 처리 오류:', error);
@@ -61,6 +66,10 @@ client.on('interactionCreate', async (interaction) => {
       if (customId.startsWith('onboard_course:')) {
         const registerHandler = require('./commands/register-handler');
         return await registerHandler.handleCourseSelect(interaction);
+      }
+      if (customId.startsWith('onboard_section:')) {
+        const registerHandler = require('./commands/register-handler');
+        return await registerHandler.handleSectionSelect(interaction);
       }
       if (customId.startsWith('onboard_position:')) {
         const registerHandler = require('./commands/register-handler');
