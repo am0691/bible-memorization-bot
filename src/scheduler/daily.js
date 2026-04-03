@@ -3,7 +3,7 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('
 const db = require('../database/connection');
 const Q = require('../database/statements');
 const config = require('../config');
-const { getNewVerses, getReviewVerses } = require('../services/review');
+const { getNewVerses, getRecentReviewVerses, getReviewVerses } = require('../services/review');
 const { getMotivationalVerse } = require('../utils/bible-verses');
 const { notifyAdmin } = require('../utils/messages');
 
@@ -48,11 +48,19 @@ async function sendDailyReminders(client) {
 
 async function sendReminderToMember(client, member) {
   const today = new Date().toISOString().split('T')[0];
-  const newVerses = getNewVerses(member.id);
-  const reviewVerses = getReviewVerses(member.id);
+  const newVerses = member.is_new_active ? getNewVerses(member.id) : [];
+  const recentVerses = member.is_recent_active ? getRecentReviewVerses(member.id) : [];
+  const reviewVerses = member.is_old_active ? getReviewVerses(member.id) : [];
 
   // Create daily log
   db.prepare(Q.insertDailyLog).run(member.id, today);
+
+  // Snapshot active tracks
+  const activeTracks = [];
+  if (member.is_new_active && newVerses.length > 0) activeTracks.push('new');
+  if (member.is_recent_active && recentVerses.length > 0) activeTracks.push('recent');
+  if (member.is_old_active && reviewVerses.length > 0) activeTracks.push('old');
+  db.prepare(Q.updateDailyLogActiveTracks).run(activeTracks.join(','), member.id, today);
 
   const discordUser = await client.users.fetch(member.discord_id);
   const motivational = getMotivationalVerse();
@@ -78,6 +86,21 @@ async function sendReminderToMember(client, member) {
     });
   }
 
+  // Recent review section
+  if (recentVerses.length > 0) {
+    const newCourse = db.prepare(Q.getCourseById).get(member.new_course_id);
+    const recentList = recentVerses.map(v => {
+      const sectionTag = v.section ? ` | ${v.section}` : '';
+      return `${v.order_num}. **${v.reference}**${sectionTag}`;
+    }).join('\n');
+
+    embed.addFields({
+      name: `🔄 최신 복습 (${recentVerses.length}구절) — ${newCourse?.name || ''}`,
+      value: recentList,
+      inline: false,
+    });
+  }
+
   // Review section
   if (reviewVerses.length > 0) {
     const reviewCourse = db.prepare(Q.getCourseById).get(member.review_course_id);
@@ -93,7 +116,7 @@ async function sendReminderToMember(client, member) {
     });
   }
 
-  if (newVerses.length === 0 && reviewVerses.length === 0) {
+  if (newVerses.length === 0 && recentVerses.length === 0 && reviewVerses.length === 0) {
     embed.addFields({
       name: '📌 안내',
       value: '오늘 배정된 구절이 없습니다. /설정 에서 코스를 확인해주세요.',
@@ -114,6 +137,11 @@ async function sendReminderToMember(client, member) {
       new ButtonBuilder().setCustomId(`complete_new:${member.id}:${today}`).setLabel('✅ 암송 완료').setStyle(ButtonStyle.Success),
     );
   }
+  if (recentVerses.length > 0) {
+    row1.addComponents(
+      new ButtonBuilder().setCustomId(`complete_recent:${member.id}:${today}`).setLabel('✅ 최신 복습 완료').setStyle(ButtonStyle.Success),
+    );
+  }
   if (reviewVerses.length > 0) {
     row1.addComponents(
       new ButtonBuilder().setCustomId(`complete_review:${member.id}:${today}`).setLabel('✅ 복습 완료').setStyle(ButtonStyle.Success),
@@ -127,6 +155,11 @@ async function sendReminderToMember(client, member) {
   if (newVerses.length > 0) {
     row2.addComponents(
       new ButtonBuilder().setCustomId(`view_new:${member.id}:${today}`).setLabel('📖 새구절 전문').setStyle(ButtonStyle.Secondary),
+    );
+  }
+  if (recentVerses.length > 0) {
+    row2.addComponents(
+      new ButtonBuilder().setCustomId(`view_recent:${member.id}:${today}`).setLabel('📖 최신 전문').setStyle(ButtonStyle.Secondary),
     );
   }
   if (reviewVerses.length > 0) {

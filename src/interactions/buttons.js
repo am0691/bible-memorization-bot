@@ -1,8 +1,8 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags } = require('discord.js');
 const db = require('../database/connection');
 const Q = require('../database/statements');
-const { completeNew, completeReview, skipToday } = require('../services/progress');
-const { getNewVerses, getReviewVerses } = require('../services/review');
+const { completeNew, completeRecent, completeReview, skipToday } = require('../services/progress');
+const { getNewVerses, getRecentReviewVerses, getReviewVerses } = require('../services/review');
 const config = require('../config');
 
 async function handleButton(interaction, client) {
@@ -48,7 +48,32 @@ async function handleButton(interaction, client) {
 
       const embed = new EmbedBuilder().setColor(0x57F287).setTitle('✅ 새 구절 암송 완료!')
         .setDescription('이번 주 새 구절을 잘 외우고 계시네요! 🙏');
-      if (updatedLog && updatedLog.review_done) {
+      if (updatedLog && updatedLog.status === 'complete') {
+        embed.addFields({ name: '🎉', value: `오늘 모든 암송 완료! 연속 **${updatedMember.streak}일**` });
+      }
+      await interaction.followUp({ embeds: [embed], flags: [MessageFlags.Ephemeral] });
+      break;
+    }
+
+    case 'complete_recent': {
+      await interaction.deferUpdate();
+      const log = db.prepare(Q.getDailyLog).get(memberId, date);
+      if (log && log.recent_done) {
+        await interaction.followUp({ content: '이미 최신 복습 완료 처리되었습니다!', flags: [MessageFlags.Ephemeral] });
+        return;
+      }
+      completeRecent(memberId, date);
+
+      const updatedLog = db.prepare(Q.getDailyLog).get(memberId, date);
+      const updatedMember = db.prepare(Q.getMemberById).get(memberId);
+
+      if (updatedLog && updatedLog.status === 'complete') {
+        await postCertification(client, updatedMember);
+      }
+
+      const embed = new EmbedBuilder().setColor(0x57F287).setTitle('✅ 최신 복습 완료!')
+        .setDescription('최근에 배운 구절들을 잘 복습하셨습니다! 🔄');
+      if (updatedLog && updatedLog.status === 'complete') {
         embed.addFields({ name: '🎉', value: `오늘 모든 암송 완료! 연속 **${updatedMember.streak}일**` });
       }
       await interaction.followUp({ embeds: [embed], flags: [MessageFlags.Ephemeral] });
@@ -73,7 +98,7 @@ async function handleButton(interaction, client) {
 
       const embed = new EmbedBuilder().setColor(0x57F287).setTitle('✅ 복습 완료!')
         .setDescription('복습 포인터가 다음 구절로 이동했습니다! 📗');
-      if (updatedLog && updatedLog.new_done) {
+      if (updatedLog && updatedLog.status === 'complete') {
         embed.addFields({ name: '🎉', value: `오늘 모든 암송 완료! 연속 **${updatedMember.streak}일**` });
       }
       await interaction.followUp({ embeds: [embed], flags: [MessageFlags.Ephemeral] });
@@ -95,6 +120,16 @@ async function handleButton(interaction, client) {
       const text = verses.map((v, i) => `**${v.order_num}. ${v.reference}**\n"${v.text}"`).join('\n\n');
       const embed = new EmbedBuilder().setColor(0x4A90D9).setTitle('📖 이번 주 새 구절')
         .setDescription(text || '이번 주 배정된 새 구절이 없습니다.');
+      await interaction.editReply({ embeds: [embed] });
+      break;
+    }
+
+    case 'view_recent': {
+      await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+      const verses = getRecentReviewVerses(memberId);
+      const text = verses.map((v, i) => `**${v.order_num}. ${v.reference}**\n"${v.text}"`).join('\n\n');
+      const embed = new EmbedBuilder().setColor(0xE2B04A).setTitle('🔄 최신 복습 구절')
+        .setDescription(text || '최신 복습 구절이 없습니다.');
       await interaction.editReply({ embeds: [embed] });
       break;
     }

@@ -1,11 +1,16 @@
 const db = require('../database/connection');
 const Q = require('../database/statements');
-const { hasNewVerses, hasReview } = require('./review');
-
 // Record new verse completion for the day
 function completeNew(memberId, date) {
   db.prepare(Q.insertDailyLog).run(memberId, date);
   db.prepare(Q.updateDailyLogNewDone).run(memberId, date);
+  checkAndUpdateStreak(memberId, date);
+}
+
+// Record recent review completion for the day
+function completeRecent(memberId, date) {
+  db.prepare(Q.insertDailyLog).run(memberId, date);
+  db.prepare(Q.updateDailyLogRecentDone).run(memberId, date);
   checkAndUpdateStreak(memberId, date);
 }
 
@@ -23,22 +28,21 @@ function checkAndUpdateStreak(memberId, date) {
   const log = db.prepare(Q.getDailyLog).get(memberId, date);
   if (!log || log.status === 'complete') return;
 
-  const memberHasNew = hasNewVerses(memberId);
-  const memberHasReview = hasReview(memberId);
+  const activeTracks = (log.active_tracks || '').split(',').filter(Boolean);
+  if (activeTracks.length === 0) return;
 
-  let isComplete = false;
-  if (memberHasNew && memberHasReview) {
-    isComplete = log.new_done === 1 && log.review_done === 1;
-  } else if (memberHasNew) {
-    isComplete = log.new_done === 1;
-  } else if (memberHasReview) {
-    isComplete = log.review_done === 1;
-  }
+  const checks = {
+    new: log.new_done === 1,
+    recent: log.recent_done === 1,
+    old: log.review_done === 1,
+  };
+
+  const isComplete = activeTracks.every(track => checks[track]);
 
   if (isComplete) {
     db.prepare("UPDATE daily_logs SET status = 'complete' WHERE id = ?").run(log.id);
     db.prepare(Q.updateMemberStreak).run(memberId);
-  } else if (log.new_done || log.review_done) {
+  } else if (log.new_done || log.recent_done || log.review_done) {
     db.prepare("UPDATE daily_logs SET status = 'partial' WHERE id = ?").run(log.id);
   }
 }
@@ -83,4 +87,4 @@ function getMemberStats(memberId) {
   return result;
 }
 
-module.exports = { completeNew, completeReview, skipToday, getMemberStats };
+module.exports = { completeNew, completeRecent, completeReview, skipToday, getMemberStats };
