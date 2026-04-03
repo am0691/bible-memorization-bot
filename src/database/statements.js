@@ -13,6 +13,11 @@ module.exports = {
   updateMemberReviewCourse: 'UPDATE members SET review_course_id = ?, review_position = ? WHERE id = ?',
   updateMemberReviewPosition: 'UPDATE members SET review_position = ? WHERE id = ?',
   updateMemberReviewPerDay: 'UPDATE members SET review_per_day = ? WHERE id = ?',
+  updateMemberRecentCount: 'UPDATE members SET recent_count = ? WHERE id = ?',
+  updateMemberTrackActive: 'UPDATE members SET is_new_active = ?, is_recent_active = ?, is_old_active = ? WHERE id = ?',
+  updateMemberNewActive: 'UPDATE members SET is_new_active = ? WHERE id = ?',
+  updateMemberRecentActive: 'UPDATE members SET is_recent_active = ? WHERE id = ?',
+  updateMemberOldActive: 'UPDATE members SET is_old_active = ? WHERE id = ?',
   updateMemberSundayMode: 'UPDATE members SET sunday_mode = ? WHERE id = ?',
   updateMemberActive: 'UPDATE members SET is_active = ? WHERE id = ?',
   advanceNewPosition: 'UPDATE members SET new_position = new_position + ? WHERE id = ?',
@@ -37,7 +42,9 @@ module.exports = {
   getDailyLog: 'SELECT * FROM daily_logs WHERE member_id = ? AND log_date = ?',
   insertDailyLog: "INSERT OR IGNORE INTO daily_logs (member_id, log_date) VALUES (?, ?)",
   updateDailyLogNewDone: "UPDATE daily_logs SET new_done = 1 WHERE member_id = ? AND log_date = ?",
+  updateDailyLogRecentDone: "UPDATE daily_logs SET recent_done = 1 WHERE member_id = ? AND log_date = ?",
   updateDailyLogReviewDone: "UPDATE daily_logs SET review_done = 1 WHERE member_id = ? AND log_date = ?",
+  updateDailyLogActiveTracks: "UPDATE daily_logs SET active_tracks = ? WHERE member_id = ? AND log_date = ?",
   updateDailyLogSkipped: "UPDATE daily_logs SET status = 'skipped' WHERE member_id = ? AND log_date = ?",
 
   // Settings

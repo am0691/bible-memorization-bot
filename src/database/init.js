@@ -55,7 +55,30 @@ function migrateIfNeeded() {
 
   const memberCols = db.pragma('table_info(members)').map(c => c.name);
 
-  if (memberCols.includes('new_course_id')) return; // already migrated
+  if (memberCols.includes('new_course_id') && memberCols.includes('recent_count')) return; // already migrated
+
+  // v3.0 migration: add 3-track columns
+  if (memberCols.includes('new_course_id') && !memberCols.includes('recent_count')) {
+    console.log('[DB] v3.0 마이그레이션 시작 (3트랙 시스템)...');
+    db.transaction(() => {
+      // Members: recent review + track toggles
+      const cols = db.pragma('table_info(members)').map(c => c.name);
+      if (!cols.includes('recent_count')) db.exec('ALTER TABLE members ADD COLUMN recent_count INTEGER DEFAULT 12');
+      if (!cols.includes('is_new_active')) db.exec('ALTER TABLE members ADD COLUMN is_new_active INTEGER DEFAULT 1');
+      if (!cols.includes('is_recent_active')) db.exec('ALTER TABLE members ADD COLUMN is_recent_active INTEGER DEFAULT 1');
+      if (!cols.includes('is_old_active')) db.exec('ALTER TABLE members ADD COLUMN is_old_active INTEGER DEFAULT 1');
+
+      // Daily logs: recent_done + active_tracks snapshot
+      const logCols = db.pragma('table_info(daily_logs)').map(c => c.name);
+      if (!logCols.includes('recent_done')) db.exec('ALTER TABLE daily_logs ADD COLUMN recent_done INTEGER DEFAULT 0');
+      if (!logCols.includes('active_tracks')) db.exec("ALTER TABLE daily_logs ADD COLUMN active_tracks TEXT DEFAULT 'new,old'");
+
+      // Set is_old_active based on existing review_course_id
+      db.exec('UPDATE members SET is_old_active = CASE WHEN review_course_id IS NOT NULL THEN 1 ELSE 0 END');
+    })();
+    console.log('[DB] v3.0 마이그레이션 완료');
+    return;
+  }
 
   console.log('[DB] v2.0 마이그레이션 시작...');
 

@@ -26,10 +26,15 @@ CREATE TABLE IF NOT EXISTS members (
   new_course_id INTEGER DEFAULT 1,
   new_position INTEGER DEFAULT 1,
   new_per_week INTEGER DEFAULT 2,
-  -- Review tracking
+  -- Recent review tracking
+  recent_count INTEGER DEFAULT 12,
+  is_new_active INTEGER DEFAULT 1,
+  is_recent_active INTEGER DEFAULT 1,
+  -- Old review tracking
   review_course_id INTEGER,
   review_position INTEGER DEFAULT 1,
   review_per_day INTEGER DEFAULT 3,
+  is_old_active INTEGER DEFAULT 1,
   -- General
   streak INTEGER DEFAULT 0,
   is_active INTEGER DEFAULT 1,
@@ -54,7 +59,9 @@ CREATE TABLE IF NOT EXISTS daily_logs (
   member_id INTEGER NOT NULL,
   log_date TEXT NOT NULL,
   new_done INTEGER DEFAULT 0,
+  recent_done INTEGER DEFAULT 0,
   review_done INTEGER DEFAULT 0,
+  active_tracks TEXT DEFAULT 'new,recent,old',
   status TEXT DEFAULT 'pending',
   created_at DATETIME DEFAULT (datetime('now')),
   UNIQUE(member_id, log_date),
