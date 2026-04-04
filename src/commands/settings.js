@@ -36,20 +36,6 @@ module.exports = {
     if (!member || member.discord_id !== interaction.user.id) return;
 
     switch (action) {
-      case 'settings_toggle': {
-        const newActive = member.is_active ? 0 : 1;
-        db.prepare(Q.updateMemberActive).run(newActive, member.id);
-        const msg = newActive ? '알림이 다시 활성화되었습니다' : '알림이 일시정지되었습니다';
-        const updated = db.prepare(Q.getMemberById).get(member.id);
-        return showSettingsMenu(interaction, updated, true, msg);
-      }
-      case 'settings_sunday': {
-        const newMode = member.sunday_mode ? 0 : 1;
-        db.prepare(Q.updateMemberSundayMode).run(newMode, member.id);
-        const msg = newMode ? '주일 알림이 꺼졌습니다' : '주일 알림이 켜졌습니다';
-        const updated = db.prepare(Q.getMemberById).get(member.id);
-        return showSettingsMenu(interaction, updated, true, msg);
-      }
       case 'settings_done': {
         const embed = new EmbedBuilder()
           .setColor(0x57F287)
@@ -133,12 +119,6 @@ module.exports = {
 async function showSettingsMenu(interaction, member, isUpdate = false, successMsg = null) {
   const newCourse = member.new_course_id ? db.prepare(Q.getCourseById).get(member.new_course_id) : null;
   const reviewCourse = member.review_course_id ? db.prepare(Q.getCourseById).get(member.review_course_id) : null;
-  const statusText = member.is_active ? '🟢 활성' : '🔴 비활성';
-  const sundayText = member.sunday_mode ? '🔕 꺼짐' : '🔔 켜짐';
-
-  const newPosText = newCourse
-    ? (member.new_position > newCourse.total_verses ? '전체 완료' : `${member.new_position}번째`)
-    : '-';
 
   const embed = new EmbedBuilder()
     .setColor(0x4A90D9)
@@ -148,48 +128,40 @@ async function showSettingsMenu(interaction, member, isUpdate = false, successMs
     embed.setDescription(`✅ ${successMsg}`);
   }
 
+  const newValue = newCourse
+    ? `${newCourse.name} · ${member.new_position > newCourse.total_verses ? '전체 완료' : member.new_position + '번째'} · ${member.new_per_week}구절/주`
+    : '미설정';
+  const recentValue = member.is_recent_active
+    ? `최근 ${member.recent_count}구절 · 활성`
+    : `최근 ${member.recent_count}구절 · 비활성`;
+  const reviewValue = reviewCourse
+    ? `${reviewCourse.name} · ${member.review_position}번째 · ${member.review_per_day}구절/일`
+    : '미설정';
+  const notiValue = `알림 ${member.is_active ? '활성' : '비활성'} · 주일 ${member.sunday_mode ? '꺼짐' : '켜짐'} · 🔥 ${member.streak}일`;
+
   embed.addFields(
-      { name: '━━ 🆕 새 구절 ━━', value: '\u200b', inline: false },
-      { name: '📚 코스', value: newCourse ? `${newCourse.name} (${newCourse.total_verses}구절)` : '-', inline: true },
-      { name: '📍 현재 위치', value: newPosText, inline: true },
-      { name: '📊 주간 목표', value: `${member.new_per_week}구절/주`, inline: true },
-      { name: '━━ 🔄 최신 복습 ━━', value: '\u200b', inline: false },
-      { name: '📚 범위', value: newCourse ? `최근 ${member.recent_count}구절 (${newCourse.name})` : '-', inline: true },
-      { name: '📍 상태', value: member.is_recent_active ? '🟢 활성' : '🔴 비활성', inline: true },
-      { name: '\u200b', value: '\u200b', inline: true },
-      { name: '━━ 📗 예전 복습 ━━', value: '\u200b', inline: false },
-      { name: '📚 코스', value: reviewCourse ? `${reviewCourse.name} (${reviewCourse.total_verses}구절)` : '없음', inline: true },
-      { name: '📍 현재 위치', value: reviewCourse ? `${member.review_position}번째` : '-', inline: true },
-      { name: '📊 일일 목표', value: `${member.review_per_day}구절/일`, inline: true },
-      { name: '━━ 🔔 알림 ━━', value: '\u200b', inline: false },
-      { name: '알림', value: statusText, inline: true },
-      { name: '주일 알림', value: sundayText, inline: true },
-      { name: '연속 완료', value: `${member.streak}일 🔥`, inline: true },
-    )
-    .setTimestamp();
+    { name: '🆕 새 구절', value: newValue },
+    { name: '🔄 최신복습', value: recentValue },
+    { name: '📗 예전복습', value: reviewValue },
+    { name: '🔔 설정', value: notiValue },
+  ).setTimestamp();
+
+  const menuOptions = [
+    { label: '🆕 새구절 코스 변경', value: 'new_course', description: `현재: ${newCourse?.name || '미설정'}` },
+    { label: '🆕 새구절 시작점 변경', value: 'new_position', description: `현재: ${member.new_position}번째` },
+    { label: '🆕 주간 새구절 수 변경', value: 'new_perweek', description: `현재: ${member.new_per_week}구절/주` },
+    { label: '🔄 최신 복습 범위 변경', value: 'recent_count', description: `현재: 최근 ${member.recent_count}구절` },
+    { label: '📗 복습 코스 변경', value: 'review_course', description: `현재: ${reviewCourse?.name || '미설정'}` },
+    { label: '📗 복습 시작점 변경', value: 'review_position', description: `현재: ${member.review_position}번째` },
+    { label: '📗 일일 복습 수 변경', value: 'review_perday', description: `현재: ${member.review_per_day}구절/일` },
+    { label: `🔔 알림 ${member.is_active ? '일시정지' : '다시 받기'}`, value: 'toggle_notification', description: `현재: ${member.is_active ? '활성' : '비활성'}` },
+    { label: `📅 주일 알림 ${member.sunday_mode ? '켜기' : '끄기'}`, value: 'toggle_sunday', description: `현재: ${member.sunday_mode ? '꺼짐' : '켜짐'}` },
+  ];
 
   const settingsMenu = new StringSelectMenuBuilder()
     .setCustomId(`settings_menu:${member.id}`)
     .setPlaceholder('변경할 항목을 선택하세요')
-    .addOptions(
-      { label: '🆕 새구절 코스 변경', value: 'new_course' },
-      { label: '📍 새구절 시작점 변경', value: 'new_position' },
-      { label: '📊 주간 새구절 수 변경', value: 'new_perweek' },
-      { label: '📗 복습 코스 변경', value: 'review_course' },
-      { label: '📍 복습 시작점 변경', value: 'review_position' },
-      { label: '📊 일일 복습 수 변경', value: 'review_perday' },
-      { label: '🔄 최신 복습 범위 변경', value: 'recent_count' },
-    );
-
-  const toggleBtn = new ButtonBuilder()
-    .setCustomId(`settings_toggle:${member.id}`)
-    .setLabel(member.is_active ? '🔕 알림 일시정지' : '🔔 알림 다시 받기')
-    .setStyle(member.is_active ? ButtonStyle.Danger : ButtonStyle.Success);
-
-  const sundayBtn = new ButtonBuilder()
-    .setCustomId(`settings_sunday:${member.id}`)
-    .setLabel(member.sunday_mode ? '🔔 주일 알림 켜기' : '🔕 주일 알림 끄기')
-    .setStyle(member.sunday_mode ? ButtonStyle.Success : ButtonStyle.Secondary);
+    .addOptions(menuOptions);
 
   const doneBtn = new ButtonBuilder()
     .setCustomId(`settings_done:${member.id}`)
@@ -212,10 +184,9 @@ async function showSettingsMenu(interaction, member, isUpdate = false, successMs
     .setStyle(member.is_old_active ? ButtonStyle.Success : ButtonStyle.Secondary);
 
   const row1 = new ActionRowBuilder().addComponents(settingsMenu);
-  const row2 = new ActionRowBuilder().addComponents(toggleBtn, sundayBtn, doneBtn);
-  const row3 = new ActionRowBuilder().addComponents(newTrackBtn, recentTrackBtn, oldTrackBtn);
+  const row2 = new ActionRowBuilder().addComponents(newTrackBtn, recentTrackBtn, oldTrackBtn, doneBtn);
 
-  const payload = { embeds: [embed], components: [row1, row2, row3], flags: [MessageFlags.Ephemeral] };
+  const payload = { embeds: [embed], components: [row1, row2], flags: [MessageFlags.Ephemeral] };
   if (isUpdate) {
     await interaction.update(payload);
   } else {
@@ -288,6 +259,20 @@ async function handleMenuSelect(interaction, member) {
       const embed = new EmbedBuilder().setColor(0x4A90D9).setTitle('🔄 최신 복습 범위 변경');
       await interaction.update({ embeds: [embed], components: [new ActionRowBuilder().addComponents(menu)] });
       break;
+    }
+    case 'toggle_notification': {
+      const newState = member.is_active ? 0 : 1;
+      db.prepare(Q.updateMemberActive).run(newState, member.id);
+      const msg = newState ? '알림이 다시 활성화되었습니다' : '알림이 일시정지되었습니다';
+      const updated = db.prepare(Q.getMemberById).get(member.id);
+      return showSettingsMenu(interaction, updated, true, msg);
+    }
+    case 'toggle_sunday': {
+      const newMode = member.sunday_mode ? 0 : 1;
+      db.prepare(Q.updateMemberSundayMode).run(newMode, member.id);
+      const msg = newMode ? '주일 알림이 꺼졌습니다' : '주일 알림이 켜졌습니다';
+      const updated = db.prepare(Q.getMemberById).get(member.id);
+      return showSettingsMenu(interaction, updated, true, msg);
     }
   }
 }
