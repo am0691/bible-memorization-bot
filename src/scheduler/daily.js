@@ -1,11 +1,11 @@
 const cron = require('node-cron');
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const db = require('../database/connection');
 const Q = require('../database/statements');
 const config = require('../config');
 const { getNewVerses, getRecentReviewVerses, getReviewVerses } = require('../services/review');
 const { getMotivationalVerse } = require('../utils/bible-verses');
-const { notifyAdmin } = require('../utils/messages');
+const { notifyAdmin, buildDailyButtons } = require('../utils/messages');
 
 function startDailyScheduler(client) {
   const [hour, minute] = config.dailyReminderTime.split(':');
@@ -130,46 +130,8 @@ async function sendReminderToMember(client, member) {
     inline: false,
   });
 
-  // Buttons
-  const row1 = new ActionRowBuilder();
-  if (newVerses.length > 0) {
-    row1.addComponents(
-      new ButtonBuilder().setCustomId(`complete_new:${member.id}:${today}`).setLabel('✅ 암송 완료').setStyle(ButtonStyle.Success),
-    );
-  }
-  if (recentVerses.length > 0) {
-    row1.addComponents(
-      new ButtonBuilder().setCustomId(`complete_recent:${member.id}:${today}`).setLabel('✅ 최신 복습 완료').setStyle(ButtonStyle.Success),
-    );
-  }
-  if (reviewVerses.length > 0) {
-    row1.addComponents(
-      new ButtonBuilder().setCustomId(`complete_review:${member.id}:${today}`).setLabel('✅ 복습 완료').setStyle(ButtonStyle.Success),
-    );
-  }
-  row1.addComponents(
-    new ButtonBuilder().setCustomId(`skip_today:${member.id}:${today}`).setLabel('😴 쉴게요').setStyle(ButtonStyle.Danger),
-  );
-
-  const row2 = new ActionRowBuilder();
-  if (newVerses.length > 0) {
-    row2.addComponents(
-      new ButtonBuilder().setCustomId(`view_new:${member.id}:${today}`).setLabel('📖 새구절 전문').setStyle(ButtonStyle.Secondary),
-    );
-  }
-  if (recentVerses.length > 0) {
-    row2.addComponents(
-      new ButtonBuilder().setCustomId(`view_recent:${member.id}:${today}`).setLabel('📖 최신 전문').setStyle(ButtonStyle.Secondary),
-    );
-  }
-  if (reviewVerses.length > 0) {
-    row2.addComponents(
-      new ButtonBuilder().setCustomId(`view_review:${member.id}:${today}`).setLabel('📖 복습 전문').setStyle(ButtonStyle.Secondary),
-    );
-  }
-
-  const components = [row1];
-  if (row2.components.length > 0) components.push(row2);
+  // Buttons — 트랙별 고유 스타일 (#2), 쉴게요 Secondary (#3)
+  const components = buildDailyButtons(member.id, today, null, activeTracks);
 
   await discordUser.send({ embeds: [embed], components });
 }

@@ -1,9 +1,10 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags } = require('discord.js');
+const { EmbedBuilder, MessageFlags } = require('discord.js');
 const db = require('../database/connection');
 const Q = require('../database/statements');
 const { completeNew, completeRecent, completeReview, skipToday } = require('../services/progress');
 const { getNewVerses, getRecentReviewVerses, getReviewVerses } = require('../services/review');
 const config = require('../config');
+const { buildDailyButtons, updateEmbedAfterCompletion } = require('../utils/messages');
 
 async function handleButton(interaction, client) {
   const parts = interaction.customId.split(':');
@@ -46,12 +47,13 @@ async function handleButton(interaction, client) {
         await postCertification(client, updatedMember);
       }
 
-      const embed = new EmbedBuilder().setColor(0x57F287).setTitle('✅ 새 구절 암송 완료!')
-        .setDescription('이번 주 새 구절을 잘 외우고 계시네요! 🙏');
-      if (updatedLog && updatedLog.status === 'complete') {
-        embed.addFields({ name: '🎉', value: `오늘 모든 암송 완료! 연속 **${updatedMember.streak}일**` });
-      }
-      await interaction.followUp({ embeds: [embed], flags: [MessageFlags.Ephemeral] });
+      // #4: 원본 메시지 업데이트 (☐→✅)
+      const activeTracks = (updatedLog.active_tracks || '').split(',').filter(Boolean);
+      const updatedEmbed = updateEmbedAfterCompletion(
+        interaction.message.embeds[0], 'new', updatedLog, updatedMember, activeTracks,
+      );
+      const updatedComponents = buildDailyButtons(memberId, date, updatedLog, activeTracks);
+      await interaction.editReply({ embeds: [updatedEmbed], components: updatedComponents });
       break;
     }
 
@@ -71,12 +73,12 @@ async function handleButton(interaction, client) {
         await postCertification(client, updatedMember);
       }
 
-      const embed = new EmbedBuilder().setColor(0x57F287).setTitle('✅ 최신 복습 완료!')
-        .setDescription('최근에 배운 구절들을 잘 복습하셨습니다! 🔄');
-      if (updatedLog && updatedLog.status === 'complete') {
-        embed.addFields({ name: '🎉', value: `오늘 모든 암송 완료! 연속 **${updatedMember.streak}일**` });
-      }
-      await interaction.followUp({ embeds: [embed], flags: [MessageFlags.Ephemeral] });
+      const activeTracks2 = (updatedLog.active_tracks || '').split(',').filter(Boolean);
+      const updatedEmbed2 = updateEmbedAfterCompletion(
+        interaction.message.embeds[0], 'recent', updatedLog, updatedMember, activeTracks2,
+      );
+      const updatedComponents2 = buildDailyButtons(memberId, date, updatedLog, activeTracks2);
+      await interaction.editReply({ embeds: [updatedEmbed2], components: updatedComponents2 });
       break;
     }
 
@@ -96,12 +98,12 @@ async function handleButton(interaction, client) {
         await postCertification(client, updatedMember);
       }
 
-      const embed = new EmbedBuilder().setColor(0x57F287).setTitle('✅ 복습 완료!')
-        .setDescription('복습 포인터가 다음 구절로 이동했습니다! 📗');
-      if (updatedLog && updatedLog.status === 'complete') {
-        embed.addFields({ name: '🎉', value: `오늘 모든 암송 완료! 연속 **${updatedMember.streak}일**` });
-      }
-      await interaction.followUp({ embeds: [embed], flags: [MessageFlags.Ephemeral] });
+      const activeTracks3 = (updatedLog.active_tracks || '').split(',').filter(Boolean);
+      const updatedEmbed3 = updateEmbedAfterCompletion(
+        interaction.message.embeds[0], 'review', updatedLog, updatedMember, activeTracks3,
+      );
+      const updatedComponents3 = buildDailyButtons(memberId, date, updatedLog, activeTracks3);
+      await interaction.editReply({ embeds: [updatedEmbed3], components: updatedComponents3 });
       break;
     }
 
