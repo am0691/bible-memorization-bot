@@ -23,7 +23,8 @@ function buildProgressBar(current, total, length = 10) {
  * @param {object|null} dailyLog - null이면 초기 상태 (모두 미완료)
  * @param {string[]} activeTracks - ['new', 'recent', 'old']
  */
-function buildDailyButtons(memberId, date, dailyLog, activeTracks) {
+function buildDailyButtons(memberId, date, dailyLog, activeTracks, options = {}) {
+  const { showNewViewBtn = true } = options;
   const hasNew = activeTracks.includes('new');
   const hasRecent = activeTracks.includes('recent');
   const hasReview = activeTracks.includes('old');
@@ -74,7 +75,7 @@ function buildDailyButtons(memberId, date, dailyLog, activeTracks) {
   }
 
   const row2 = new ActionRowBuilder();
-  if (hasNew) {
+  if (hasNew && showNewViewBtn) {
     row2.addComponents(new ButtonBuilder().setCustomId(`view_new:${memberId}:${date}`).setLabel('📖 새구절 전문').setStyle(ButtonStyle.Secondary));
   }
   if (hasRecent) {
@@ -114,31 +115,24 @@ function updateEmbedAfterCompletion(originalEmbed, trackType, updatedLog, update
     }
   }
 
-  // Update stats field
+  // Update description (streak is now in description, not in a field)
   const allDone = updatedLog.status === 'complete';
-  const statsIdx = fields.findIndex(f => f.name === '📊 현황');
-  if (statsIdx >= 0) {
-    if (allDone) {
-      fields[statsIdx] = {
-        name: '📊 현황',
-        value: `🎉 오늘 모든 암송 완료! 연속 **${updatedMember.streak}일**`,
-        inline: false,
-      };
-    } else {
-      const remaining = [];
-      if (activeTracks.includes('new') && !updatedLog.new_done) remaining.push('🆕 새 구절');
-      if (activeTracks.includes('recent') && !updatedLog.recent_done) remaining.push('🔄 최신 복습');
-      if (activeTracks.includes('old') && !updatedLog.review_done) remaining.push('📗 예전 복습');
-      fields[statsIdx] = {
-        name: '📊 현황',
-        value: `🔥 연속 완료: **${updatedMember.streak}일** | 남은: ${remaining.join(' · ')}`,
-        inline: false,
-      };
-    }
+  if (allDone) {
+    embed.setDescription(`🎉 오늘 모든 암송 완료! 연속 **${updatedMember.streak}일**`);
+    embed.setColor(0x57F287);
+  } else {
+    const remaining = [];
+    if (activeTracks.includes('new') && !updatedLog.new_done) remaining.push('🆕 새 구절');
+    if (activeTracks.includes('recent') && !updatedLog.recent_done) remaining.push('🔄 최신 복습');
+    if (activeTracks.includes('old') && !updatedLog.review_done) remaining.push('📗 예전 복습');
+    embed.setDescription(`🔥 연속 완료: **${updatedMember.streak}일** | 남은: ${remaining.join(' · ')}`);
   }
 
+  // Remove the old 📊 현황 field if it still exists (backward compat)
+  const statsIdx = fields.findIndex(f => f.name === '📊 현황');
+  if (statsIdx >= 0) fields.splice(statsIdx, 1);
+
   embed.setFields(fields);
-  if (allDone) embed.setColor(0x57F287);
 
   return embed;
 }

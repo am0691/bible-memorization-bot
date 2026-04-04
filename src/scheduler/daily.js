@@ -68,50 +68,42 @@ async function sendReminderToMember(client, member) {
   const embed = new EmbedBuilder()
     .setColor(0x4A90D9)
     .setTitle('📖 오늘의 암송')
-    .setDescription(`> *"${motivational.text}"*\n> — ${motivational.reference}`)
+    .setDescription(`🔥 연속 완료: **${member.streak}일**`)
+    .setFooter({ text: `"${motivational.text}" — ${motivational.reference}` })
     .setTimestamp();
 
   // New verse section
-  if (newVerses.length > 0) {
-    const newCourse = db.prepare(Q.getCourseById).get(member.new_course_id);
-    const newList = newVerses.map(v => {
-      const sectionTag = v.section ? ` | ${v.section}` : '';
-      return `${v.order_num}. **${v.reference}**${sectionTag}\n> ${v.text_short || v.text.substring(0, 40) + '...'}`;
-    }).join('\n');
-
+  if (newVerses.length > 0 && newVerses.length <= 3) {
+    const newList = newVerses.map(v =>
+      `**${v.reference}** "${v.text}"`
+    ).join('\n');
     embed.addFields({
-      name: `🆕 이번 주 새 구절 (${newVerses.length}구절) — ${newCourse?.name || ''}`,
+      name: `🆕 새 구절 (${newVerses.length}개)`,
       value: newList,
+      inline: false,
+    });
+  } else if (newVerses.length > 3) {
+    embed.addFields({
+      name: `🆕 새 구절 (${newVerses.length}개)`,
+      value: newVerses.map(v => v.reference).join(', '),
       inline: false,
     });
   }
 
   // Recent review section
   if (recentVerses.length > 0) {
-    const newCourse = db.prepare(Q.getCourseById).get(member.new_course_id);
-    const recentList = recentVerses.map(v => {
-      const sectionTag = v.section ? ` | ${v.section}` : '';
-      return `${v.order_num}. **${v.reference}**${sectionTag}`;
-    }).join('\n');
-
     embed.addFields({
-      name: `🔄 최신 복습 (${recentVerses.length}구절) — ${newCourse?.name || ''}`,
-      value: recentList,
+      name: `🔄 최신 복습 (${recentVerses.length}개)`,
+      value: recentVerses.map(v => v.reference).join(', '),
       inline: false,
     });
   }
 
   // Review section
   if (reviewVerses.length > 0) {
-    const reviewCourse = db.prepare(Q.getCourseById).get(member.review_course_id);
-    const reviewList = reviewVerses.map(v => {
-      const sectionTag = v.section ? ` | ${v.section}` : '';
-      return `${v.order_num}. **${v.reference}**${sectionTag}`;
-    }).join('\n');
-
     embed.addFields({
-      name: `📗 오늘의 복습 (${reviewVerses.length}구절) — ${reviewCourse?.name || ''}`,
-      value: reviewList,
+      name: `📗 예전 복습 (${reviewVerses.length}개)`,
+      value: reviewVerses.map(v => v.reference).join(', '),
       inline: false,
     });
   }
@@ -123,15 +115,9 @@ async function sendReminderToMember(client, member) {
     });
   }
 
-  // Stats line
-  embed.addFields({
-    name: '📊 현황',
-    value: `🔥 연속 완료: **${member.streak}일**`,
-    inline: false,
-  });
-
   // Buttons — 트랙별 고유 스타일 (#2), 쉴게요 Secondary (#3)
-  const components = buildDailyButtons(member.id, today, null, activeTracks);
+  const showNewViewBtn = newVerses.length > 3;
+  const components = buildDailyButtons(member.id, today, null, activeTracks, { showNewViewBtn });
 
   await discordUser.send({ embeds: [embed], components });
 }
